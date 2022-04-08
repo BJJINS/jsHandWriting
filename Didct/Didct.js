@@ -3,6 +3,7 @@ let nextUnitOfWork = null;
 let wipRoot = null;
 //当前的页面在使用的fiber根节点
 let currentRoot = null;
+//记录与新的fiber节点不同的oldFiber节点，这些节点需要删除
 let deletions = null;
 const isGone = (pre, next) => (key) => !Reflect.has(next, key);
 const isNew = (prev, next) => (key) => prev[key] !== next[key];
@@ -53,29 +54,30 @@ const createDom = (fiber) => {
 };
 const updateDom = (dom, preProps, nextProps) => {
   Reflect.ownKeys(preProps)
-    .filter(isEvent)
-    .filter(
+    .filter(isEvent)//所有旧事件
+    .filter(//旧事件中，新的fiber中没有的事件或者事件在新fiber被更新的事件
       (key) => !Reflect.has(nextProps, key) || isNew(preProps, nextProps)(key)
     )
-    .forEach((name) => {
+    .forEach((name) => {//去掉这些事件
       const eventType = name.toLowerCase().substring(2);
       dom.removeEventListener(eventType, preProps[name]);
     });
 
   Reflect.ownKeys(preProps)
-    .filter(isProperty)
-    .filter(isGone(preProps, nextProps))
-    .forEach((name) => {
+    .filter(isProperty)//过滤事件属性和children
+    .filter(isGone(preProps, nextProps))//不在nextProps的属性
+    .forEach((name) => {//将这些属性置为空
       dom[name] = "";
     });
 
   Reflect.ownKeys(nextProps)
-    .filter(isProperty)
-    .filter(isNew(preProps, nextProps))
+    .filter(isProperty)//过滤事件属性和children
+    .filter(isNew(preProps, nextProps))//添加新的属性
     .forEach((name) => {
       dom[name] = nextProps[name];
     });
 
+    //添加和更新事件
   Reflect.ownKeys(nextProps)
     .filter(isEvent)
     .filter(isNew(preProps, nextProps))
@@ -119,6 +121,7 @@ const commitRoot = () => {
   currentRoot = wipRoot;
   wipRoot = null;
 };
+//render是处理fiber节点，commit才是渲染视图
 const render = (element, container) => {
   wipRoot = {
     dom: container,
@@ -133,24 +136,38 @@ const render = (element, container) => {
 };
 const reconcileChildren = (wipFiber, elements) => {
   let index = 0;
+  /**
+   * 找到与当前fiber对应的老的fiber节点的child(child中是createElement生成的节点，对应实际的dom)
+   * elements 就是wipFiber 的child。 elements = wipFiber.props.children
+   */
   let oldFiber = wipFiber.alternate && wipFiber.alternate.child;
 
   let preSibling = null;
+  /**
+   * 当elements不为空和有老的fiber节点时会循环
+   */
   while (index < elements.length || oldFiber !== null) {
     const element = elements[index];
     let newFiber = null;
+    //判断新节点和老节点是否是同一类型dom节点的依据是type(div,h1...)
     const sameType = oldFiber && element && element.type === oldFiber.type;
+    /**
+     * 如果是相同节点，则更新props,依旧使用原来的dom节点
+     */
     if (sameType) {
       newFiber = {
         type: oldFiber.type,
-        props: element.props,
-        dom: oldFiber.dom,
+        props: element.props, //更新props
+        dom: oldFiber.dom, //使用旧节点
         parent: wipFiber,
         alternate: oldFiber,
-        effectTag: "UPDATE",
+        effectTag: "UPDATE", //打上更新的tag
       };
     }
-
+    /**
+     * 当前的element节点与之前的fiber节点不同
+     * 创建一个新的fiber,替换原来的fiber
+     */
     if (element && !sameType) {
       newFiber = {
         type: element.type,
@@ -158,10 +175,12 @@ const reconcileChildren = (wipFiber, elements) => {
         dom: null,
         parent: wipFiber,
         alternate: null,
-        effectTag: "PLACEMENT",
+        effectTag: "PLACEMENT", //替换的tag
       };
     }
-
+    /**
+     * 新旧节点不同，删除旧的fiber节点
+     */
     if (oldFiber && !sameType) {
       oldFiber.effectTag = "DELETION";
       deletions.push(oldFiber);
@@ -170,6 +189,7 @@ const reconcileChildren = (wipFiber, elements) => {
     if (oldFiber) {
       oldFiber = oldFiber.sibling;
     }
+    //只有第一个newFiber才是wipFiber的child,剩下的newFiber与child的关系是sibling
     if (index === 0) {
       wipFiber.child = newFiber;
     } else {
@@ -183,20 +203,30 @@ const updateFunctionComponent = (fiber) => {
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
 };
+//更新非函数组件
 const updateHostComponent = (fiber) => {
   if (!fiber.dom) {
     fiber.dom = createDom(fiber);
   }
   reconcileChildren(fiber, fiber.props.children);
 };
+/**
+ * 执行每个fiber工作单元
+ * @param {*} fiber
+ * @returns
+ */
 const performUnitOfWork = (fiber) => {
   const isFunctionComponent = fiber.type instanceof Function;
+  //是否是函数组件
   if (isFunctionComponent) {
     updateFunctionComponent(fiber);
   } else {
     updateHostComponent(fiber);
   }
 
+  //每次都找当前fiber的child，当前fiber没有child，就找sibling,
+  //没有sibling,就找父fiber的sibling,一直找到undefined,
+  //当nextUnitOfWork 是undefined,就会停止workLoop
   if (fiber.child) {
     return fiber.child;
   }
@@ -208,10 +238,10 @@ const performUnitOfWork = (fiber) => {
     nextFiber = nextFiber.parent;
   }
 };
- /**
-  * 
-  * @param {*} deadLine 记录了浏览器当前帧的剩余时间
-  */
+/**
+ * 在浏览器每帧有空余时间时，执行任务
+ * @param {*} deadLine 记录了浏览器当前帧的剩余时间
+ */
 const workLoop = (deadLine) => {
   let showYield = false;
   while (nextUnitOfWork && !showYield) {
@@ -219,6 +249,7 @@ const workLoop = (deadLine) => {
     showYield = deadLine.timeRemaining() < 1;
   }
   if (!nextUnitOfWork && wipRoot) {
+    //所有fiber处理完毕，并且有wipRoot,开始从fiber root渲染视图
     commitRoot();
   }
   requestIdleCallback(workLoop);
@@ -226,7 +257,6 @@ const workLoop = (deadLine) => {
 /**
  * 在浏览器当前帧的渲染已经结束，有空余时间时执行,react并没有使用这个api
  * https://juejin.cn/post/6844904081463443463
- * 
  */
 requestIdleCallback(workLoop);
 
