@@ -220,18 +220,19 @@ const useState = (initial) => {
   const oldHook =
     wipFiber.alternate &&
     wipFiber.alternate.hooks &&
-    wipFiber.alternate.hooks[hookIndex];
+    wipFiber.alternate.hooks[hookIndex];//每个functionComponent 可能有多个useState,hookIndex对应每个useState
 
   const hook = {
     state: oldHook ? oldHook.state : initial,
-    queue: [],
+    queue: [],//每个action
   };
   const actions = oldHook ? oldHook.queue : [];
   actions.forEach((action) => {
     hook.state = action(hook.state);
   });
   const setState = (action) => {
-    hook.queue.push(action);
+    hook.queue.push(action);//添加到queue中下次render时，还会触发useState，这时可以找到以前的相对应的useState,actions.forEach中执行所有actions
+    //开启下次render
     wipRoot = {
       dom: currentRoot.dom,
       props: currentRoot.props,
