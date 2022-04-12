@@ -1,7 +1,7 @@
 //下一个需要处理的fiber
 let nextUnitOfWork = null;
 let wipRoot = null;
-//当前的页面在使用的fiber根节点
+//我们提交给 DOM 的最后一个纤程树
 let currentRoot = null;
 //记录与新的fiber节点不同的oldFiber节点，这些节点需要删除
 let deletions = null;
@@ -54,30 +54,33 @@ const createDom = (fiber) => {
 };
 const updateDom = (dom, preProps, nextProps) => {
   Reflect.ownKeys(preProps)
-    .filter(isEvent)//所有旧事件
-    .filter(//旧事件中，新的fiber中没有的事件或者事件在新fiber被更新的事件
+    .filter(isEvent) //所有旧事件
+    .filter(
+      //旧事件中，新的fiber中没有的事件或者事件在新fiber被更新的事件
       (key) => !Reflect.has(nextProps, key) || isNew(preProps, nextProps)(key)
     )
-    .forEach((name) => {//去掉这些事件
+    .forEach((name) => {
+      //去掉这些事件
       const eventType = name.toLowerCase().substring(2);
       dom.removeEventListener(eventType, preProps[name]);
     });
 
   Reflect.ownKeys(preProps)
-    .filter(isProperty)//过滤事件属性和children
-    .filter(isGone(preProps, nextProps))//不在nextProps的属性
-    .forEach((name) => {//将这些属性置为空
+    .filter(isProperty) //过滤事件属性和children
+    .filter(isGone(preProps, nextProps)) //不在nextProps的属性
+    .forEach((name) => {
+      //将这些属性置为空
       dom[name] = "";
     });
 
   Reflect.ownKeys(nextProps)
-    .filter(isProperty)//过滤事件属性和children
-    .filter(isNew(preProps, nextProps))//添加新的属性
+    .filter(isProperty) //过滤事件属性和children
+    .filter(isNew(preProps, nextProps)) //添加新的属性
     .forEach((name) => {
       dom[name] = nextProps[name];
     });
 
-    //添加和更新事件
+  //添加和更新事件
   Reflect.ownKeys(nextProps)
     .filter(isEvent)
     .filter(isNew(preProps, nextProps))
@@ -87,7 +90,7 @@ const updateDom = (dom, preProps, nextProps) => {
     });
 };
 const commitDeletion = (fiber, domParent) => {
-  // TODO 被删除的fiber没有dom?
+  // 被删除的dom可能是函数组件，函数组件的fiber没有dom节点，所以要向上查找
   if (fiber.dom) {
     domParent.removeChild(fiber.dom);
   } else {
@@ -99,6 +102,7 @@ const commitWork = (fiber) => {
     return;
   }
   let domParentFiber = fiber.parent;
+  //函数组件没有dom
   while (!domParentFiber.dom) {
     domParentFiber = domParentFiber.parent;
   }
@@ -107,7 +111,7 @@ const commitWork = (fiber) => {
   if (fiber.effectTag === "PLACEMENT" && fiber.dom !== null) {
     domParent.appendChild(fiber.dom);
   }
-  if (fiber.effectTag === "DELETION" && fiber.dom !== null) {
+  if (fiber.effectTag === "DELETION") {
     commitDeletion(fiber, domParent);
   }
   if (fiber.effectTag === "UPDATE" && fiber.dom !== null) {
@@ -148,7 +152,7 @@ const reconcileChildren = (wipFiber, elements) => {
   /**
    * 当elements不为空和有老的fiber节点时会循环
    */
-  while (index < elements.length || oldFiber !== null) {
+  while (index < elements.length || oldFiber) {
     const element = elements[index];
     let newFiber = null;
     //判断新节点和老节点是否是同一类型dom节点的依据是type(div,h1...)
@@ -201,9 +205,45 @@ const reconcileChildren = (wipFiber, elements) => {
     index++;
   }
 };
+
+let wipFiber = null;
+let hookIndex = null;
+
 const updateFunctionComponent = (fiber) => {
+  wipFiber = fiber;
+  hookIndex = 0;
+  wipFiber.hooks = [];
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
+};
+const useState = (initial) => {
+  const oldHook =
+    wipFiber.alternate &&
+    wipFiber.alternate.hooks &&
+    wipFiber.alternate.hooks[hookIndex];
+
+  const hook = {
+    state: oldHook ? oldHook.state : initial,
+    queue: [],
+  };
+  const actions = oldHook ? oldHook.queue : [];
+  actions.forEach((action) => {
+    hook.state = action(hook.state);
+  });
+  const setState = (action) => {
+    hook.queue.push(action);
+    wipRoot = {
+      dom: currentRoot.dom,
+      props: currentRoot.props,
+      alternate: currentRoot,
+    };
+    nextUnitOfWork = wipRoot;
+    deletions = [];
+  };
+
+  wipFiber.hooks.push(hook);
+  hookIndex++;
+  return [hook.state, setState];
 };
 //更新非函数组件
 const updateHostComponent = (fiber) => {
@@ -265,6 +305,7 @@ requestIdleCallback(workLoop);
 const Didact = {
   createElement,
   render,
+  useState,
 };
 
 export default Didact;

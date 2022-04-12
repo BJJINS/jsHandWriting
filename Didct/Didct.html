@@ -10,23 +10,28 @@
     <div id="root"></div>
     <script type="module">
       import Didact from "./Didct.js";
-      const element = Didact.createElement(
-        "div",
-        { id: "foo" },
-        Didact.createElement("a", null, "bar"),
-        Didact.createElement("b")
-      );
+      // const element = Didact.createElement(
+      //   "div",
+      //   { id: "foo" },
+      //   Didact.createElement("a", null, "bar"),
+      //   Didact.createElement("b")
+      // );
       // function App(props) {
       //   return <h1>Hi {props.name}</h1>;
       // }
       // const element = <App name="foo" />;
-      // function App(props) {
-      //   return Didact.createElement("h1", null, "Hi ", props.name);
-      // }
-      // const element = Didact.createElement(App, {
-      //   name: "foo",
-      // });
-      console.log("🚀 ~ file: Didact.html ~ line 242 ~ element", element);
+      function App(props) {
+        const [state, setState] = Didact.useState(1);
+        return Didact.createElement(
+          "div",
+          {
+            onClick: () => setState((c) => c + 1),
+          },
+          "Count:",
+          state
+        );
+      }
+      const element = Didact.createElement(App);
 
       const container = document.getElementById("root");
       Didact.render(element, container);
