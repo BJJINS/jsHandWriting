@@ -87,6 +87,7 @@ const updateDom = (dom, preProps, nextProps) => {
     });
 };
 const commitDeletion = (fiber, domParent) => {
+  // TODO 被删除的fiber没有dom?
   if (fiber.dom) {
     domParent.removeChild(fiber.dom);
   } else {
@@ -102,6 +103,7 @@ const commitWork = (fiber) => {
     domParentFiber = domParentFiber.parent;
   }
   const domParent = domParentFiber.dom;
+  //初始化时，tag为PLACEMENT 的fiber没有dom
   if (fiber.effectTag === "PLACEMENT" && fiber.dom !== null) {
     domParent.appendChild(fiber.dom);
   }
