@@ -100,13 +100,28 @@
           });
           return promise;
         }
-        static resolve() {}
-        static reject() {}
+        static resolve(param) {
+          if (param instanceof MyPromise) {
+            return param;
+          }
+          return new MyPromise((resolve) => {
+            resolve(param);
+          });
+        }
+        static reject(param) {
+          if (param instanceof MyPromise) {
+            return param;
+          }
+          return new MyPromise((_, reject) => {
+            reject(param);
+          });
+        }
         static any() {}
         catch() {}
         all() {}
         race() {}
       }
+
     </script>
   </body>
 </html>
