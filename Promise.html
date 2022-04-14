@@ -43,22 +43,38 @@
       console.log(p);
 
       class MyPromise {
-        #state = "pending";
-        #value = null;
+        state = "pending";
+        value = null;
         #hooksQueue = [];
+        constructor(executor) {
+          if (typeof executor !== "function") {
+            return;
+          }
+          executor(
+            (value) => {
+              this.#onState("fulfilled", value);
+            },
+            (reason) => {
+              this.#onState("rejected", value);
+            }
+          );
+        }
+
         #onState(state, value) {
-          this.#value = value;
-          this.#state = state;
+          this.value = value;
+          this.state = state;
           this.#onHooks(state);
         }
         #onHooks(state) {
-          let latestPromise = null;
+          let latestPromise = this;
           for (let i = 0; i < this.#hooksQueue.length; i++) {
             const hookAction = this.#hooksQueue[i];
-            let thenCallbackHook =
-              state === "fulfilled" ? hook.onFulfilled : hook.onRejected;
+            let thenCallbackHook = //thenCallbackHook 可能是undefined
+              latestPromise.state === "fulfilled"
+                ? hook.onFulfilled
+                : hook.onRejected;
             try {
-              let res = thenCallbackHook();
+              let res = thenCallbackHook(latestPromise.value);
               if (res instanceof MyPromise) {
                 latestPromise = res;
               } else {
@@ -73,21 +89,13 @@
             }
           }
         }
-        constructor(executor) {
-          if (typeof executor !== Function) {
-            return;
-          }
-          executor(
-            (value) => {
-              this.#onState("fulfilled", value);
-            },
-            (reason) => {
-              this.#onState("rejected", value);
-            }
-          );
-        }
+
         then(onFulfilled, onRejected) {
-          this.#hooksQueue.push({ onFulfilled, onRejected });
+          if (this.state === "pending") {
+            this.#hooksQueue.push({ onFulfilled, onRejected });
+          }else if (this.state === 'fulfilled') {
+            
+          }
         }
         static resolve() {}
 
@@ -104,6 +112,9 @@
 
       const myP = new MyPromise((resolve, reject) => {
         resolve(2);
+      });
+      myP.then((value) => {
+        console.log(value);
       });
       console.log(myP);
     </script>
