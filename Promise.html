@@ -32,60 +32,73 @@
           if (typeof executor !== "function") {
             return;
           }
-          executor(
-            (value) => {
-              this.#onState("fulfilled", value);
-            },
-            (reason) => {
-              this.#onState("rejected", reason);
-            }
-          );
+          try {
+            executor(
+              (value) => {
+                this.#onState("fulfilled", value);
+              },
+              (reason) => {
+                this.#onState("rejected", reason);
+              }
+            );
+          } catch (error) {
+            this.#onState("rejected", error);
+          }
         }
-
         #onState(state, value) {
           if (this.#state !== "pending") {
             return;
           }
           this.#value = value;
           this.#state = state;
-          this.#onHooks();
+          //状态改变则遍历所有then中的回调函数，依次执行
+          this.#onIterateHooks();
         }
-        #onHooks() {
+        #onIterateHooks() {
           let latestPromise = this;
           for (let i = 0; i < this.#hooksQueue.length; i++) {
             const hookAction = this.#hooksQueue[i];
             this.#onHooksResult(hookAction.hook, hookAction.newHook);
           }
         }
-        #onHooksResult(hook, newHook) {
+
+        /**
+         * hook 是当前promise.then的两个回调
+         * executorHook 是当前promise.then返回的promise的executor回调
+         */
+        #onHooksResult(hook, executorHook) {
           const thenHook =
             this.#state === "fulfilled" ? hook.onFulfilled : hook.onRejected;
           try {
-            const hookResult = thenHook ? thenHook(this.#value) : undefined;
+            //onFulfilled 或者 onRejected 没传直接resolve(上一个promise的value)
+            const hookResult = thenHook ? thenHook(this.#value) : this.#value;
             if (hookResult instanceof MyPromise) {
-              hookResult.then(...newHook);
+              //如果then返回的是promise,则通过then,来改变promise.then返回的promise的状态
+              hookResult.then(executorHook.resolve, executorHook.reject);
             } else {
-              newHook.resolve(hookResult);
+              executorHook.resolve(hookResult);
             }
           } catch (error) {
-            newHook.reject(error);
+            executorHook.reject(error);
           }
         }
 
         then(onFulfilled, onRejected) {
-          return new MyPromise((resolve, reject) => {
+          const promise = new MyPromise((resolve, reject) => {
             if (this.#state === "pending") {
               this.#hooksQueue.push({
                 hook: { onFulfilled, onRejected },
-                newHook: { resolve, reject },
+                executorHook: { resolve, reject },
               });
             } else {
+              //同步直接执行
               this.#onHooksResult(
                 { onFulfilled, onRejected },
                 { resolve, reject }
               );
             }
           });
+          return promise;
         }
         static resolve() {}
         static reject() {}
@@ -94,24 +107,6 @@
         all() {}
         race() {}
       }
-      const promise = new MyPromise((resolve, reject) => {
-        setTimeout(() => {
-          resolve("success");
-        }, 2000);
-      });
-      promise
-        .then((value) => {
-          console.log(1);
-          console.log("resolve", value);
-        })
-        .then((value) => {
-          console.log(2);
-          console.log("resolve", value);
-        })
-        .then((value) => {
-          console.log(3);
-          console.log("resolve", value);
-        });
     </script>
   </body>
 </html>
