@@ -55,10 +55,9 @@
           this.#onIterateHooks();
         }
         #onIterateHooks() {
-          let latestPromise = this;
           for (let i = 0; i < this.#hooksQueue.length; i++) {
             const hookAction = this.#hooksQueue[i];
-            this.#onHooksResult(hookAction.hook, hookAction.newHook);
+            this.#onHooksResult(hookAction.hook, hookAction.executorHook);
           }
         }
 
@@ -67,20 +66,23 @@
          * executorHook 是当前promise.then返回的promise的executor回调
          */
         #onHooksResult(hook, executorHook) {
-          const thenHook =
-            this.#state === "fulfilled" ? hook.onFulfilled : hook.onRejected;
-          try {
-            //onFulfilled 或者 onRejected 没传直接resolve(上一个promise的value)
-            const hookResult = thenHook ? thenHook(this.#value) : this.#value;
-            if (hookResult instanceof MyPromise) {
-              //如果then返回的是promise,则通过then,来改变promise.then返回的promise的状态
-              hookResult.then(executorHook.resolve, executorHook.reject);
-            } else {
-              executorHook.resolve(hookResult);
+          queueMicrotask(() => {
+            const thenHook =
+              this.#state === "fulfilled" ? hook.onFulfilled : hook.onRejected;
+            try {
+              //onFulfilled 或者 onRejected 没传直接resolve(上一个promise的value)
+              const hookResult = thenHook ? thenHook(this.#value) : this.#value;
+              if (hookResult instanceof MyPromise) {
+                //如果then返回的是promise,则通过then,来改变promise.then返回的promise的状态
+                hookResult.then(executorHook.resolve, executorHook.reject);
+              } else {
+                executorHook.resolve(hookResult);
+              }
+            } catch (error) {
+              console.log("error",error)
+              // executorHook.reject(error);
             }
-          } catch (error) {
-            executorHook.reject(error);
-          }
+          });
         }
 
         then(onFulfilled, onRejected) {
@@ -121,7 +123,31 @@
         all() {}
         race() {}
       }
+      MyPromise.resolve()
+        .then(() => {
+          console.log(0);
+          return MyPromise.resolve(4);
+        })
+        .then((res) => {
+          console.log(res);
+        });
 
+      MyPromise.resolve()
+        .then(() => {
+          console.log(1);
+        })
+        .then(() => {
+          console.log(2);
+        })
+        .then(() => {
+          console.log(3);
+        })
+        .then(() => {
+          console.log(5);
+        })
+        .then(() => {
+          console.log(6);
+        });
     </script>
   </body>
 </html>
