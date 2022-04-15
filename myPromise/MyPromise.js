@@ -58,7 +58,8 @@ class MyPromise {
         this.#state === "fulfilled" ? hook.onFulfilled : hook.onRejected;
       try {
         //onFulfilled 或者 onRejected 没传直接resolve(上一个promise的value)
-        const hookResult = thenHook ? thenHook(this.#value) : this.#value;
+        const hookResult =
+          thenHook !== undefined ? thenHook(this.#value) : this;
         if (hookResult instanceof MyPromise) {
           //如果then返回的是promise,则通过then,来改变promise.then返回的promise的状态
           hookResult.then(executorHook.resolve, executorHook.reject);
