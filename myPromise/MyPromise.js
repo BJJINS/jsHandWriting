@@ -133,7 +133,16 @@ class MyPromise {
       }
     });
   }
-  race() {}
+  static race(iterable) {
+    //传入的所有Promise其中任何一个有状态转化为fulfilled或者rejected，则将执行对应的回调
+    return new MyPromise((resolve, reject) => {
+      if (iterable.length !== 0) {
+        iterable.forEach((value) => {
+          MyPromise.resolve(value).then(resolve, reject);
+        });
+      }
+    });
+  }
 }
 
 export default MyPromise;
