@@ -106,7 +106,22 @@ class MyPromise {
       reject(param);
     });
   }
-  static any(iterable) {}
+  static any(iterable) {
+    return new MyPromise((resolve, reject) => {
+      let len = iterable.length;
+      if (len === 0) {
+        reject("AggregateError: All promises were rejected");
+        return;
+      }
+      iterable.forEach((value, i) => {
+        MyPromise.resolve(value).then(resolve, () => {
+          if (i === len - 1) {
+            reject("AggregateError: All promises were rejected");
+          }
+        });
+      });
+    });
+  }
   static all(iterable) {
     //Array,Map,Set,String ,都可以是iterable
     //这里只实现Array
