@@ -11,32 +11,40 @@
   </head>
   <body>
     <script type="module">
-      import MyPromise from "./MyPromise.js";
-      const p = Promise.resolve("a");
-      p.catch(() => {
-        console.log(11111);
-        return Promise.reject("111");
-      }).then(
-        (value) => {
-          console.log("p1", value);
-        },
-        (reason) => {
-          console.log("p2", reason);
-        }
-      );
+      // import MyPromise from "./MyPromise.js";
+      // const p1 = MyPromise.resolve(1);
+      // const p2 = new MyPromise((resolve) => {
+      //   setTimeout(() => resolve(2), 1000);
+      // });
+      // const p3 = new MyPromise((resolve) => {
+      //   setTimeout(() => resolve(3), 3000);
+      // });
 
-      const mP = MyPromise.resolve("b");
-      p.catch(() => {
-        console.log(2222);
-        return Promise.reject("222");
-      }).then(
-        (value) => {
-          console.log("m1", value);
-        },
-        (reason) => {
-          console.log("m2", reason);
-        }
-      );
+      // const p4 = MyPromise.reject("err4");
+      // const p5 = MyPromise.reject("err5");
+      // 1. 所有的Promise都成功了
+      // const p11 = MyPromise.all([p1, p2, p3])
+      //   .then(console.log) // [ 1, 2, 3 ]
+      //   .catch(console.log);
+
+      // 2. 有一个Promise失败了
+      // const p12 = MyPromise.all([p1, p2, p4])
+      //   .then(console.log)
+      //   console.log(p12);
+      // 3. 有两个Promise失败了，可以看到最终输出的是err4，第一个失败的返回值
+      // const p13 = MyPromise.all([p1, p4, p5])
+      //   .then(console.log)
+      //   .catch(console.log); // err4
+      const p1 = Promise.resolve(1);
+      const p2 = new Promise((resolve) => {
+        setTimeout(() => resolve(2), 1000);
+      });
+      const p3 = new Promise((resolve) => {
+        setTimeout(() => resolve(3), 3000);
+      });
+      const p4 = Promise.reject("err4");
+      const p12 = Promise.all([p1, p2, p4]).then(console.log);
+      console.log(p12);
     </script>
   </body>
 </html>

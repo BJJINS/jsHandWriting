@@ -105,8 +105,33 @@ class MyPromise {
       reject(param);
     });
   }
-  static any() {}
-  all() {}
+  static any(iterable) {}
+  static all(iterable) {
+    //Array,Map,Set,String ,都可以是iterable
+    //这里只实现Array
+    return new MyPromise((resolve, reject) => {
+      const len = iterable.length;
+      if (len === 0) {
+        return resolve([]);
+      }
+      const res = [];
+      let n = 0;
+      for (let i = 0; i < len; i++) {
+        MyPromise.resolve(iterable[i]).then(
+          (value) => {
+            res[i] = value;
+            n++;
+            if (n === len) {
+              resolve(res);
+            }
+          },
+          (reason) => {
+            reject(reason);
+          }
+        );
+      }
+    });
+  }
   race() {}
 }
 
