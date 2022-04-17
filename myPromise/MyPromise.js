@@ -59,7 +59,7 @@ class MyPromise {
       try {
         //onFulfilled 或者 onRejected 没传直接resolve(上一个promise的value)
         const hookResult =
-          thenHook !== undefined ? thenHook(this.#value) : this;
+          thenHook === undefined ? this : thenHook(this.#value);
         if (hookResult instanceof MyPromise) {
           //如果then返回的是promise,则通过then,来改变promise.then返回的promise的状态
           hookResult.then(executorHook.resolve, executorHook.reject);
@@ -73,18 +73,17 @@ class MyPromise {
   }
 
   then(onFulfilled, onRejected) {
-    const promise = new MyPromise((resolve, reject) => {
+    return new MyPromise((resolve, reject) => {
       if (this.#state === "pending") {
         this.#thenHookQueue.push({
-          hook: { onFulfilled, onRejected },
-          executorHook: { resolve, reject },
+          hook: {onFulfilled, onRejected},
+          executorHook: {resolve, reject},
         });
       } else {
         //同步直接执行
-        this.#onHooksResult({ onFulfilled, onRejected }, { resolve, reject });
+        this.#onHooksResult({onFulfilled, onRejected}, {resolve, reject});
       }
     });
-    return promise;
   }
   catch(onRejected) {
     return this.then(undefined, onRejected);

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test history 2</title>
+</head>
+<body>
+<script>
+
+  class Dep {
+    static watch = null;// 订阅池
+    constructor() {
+      this.subs = [];       //该事件下被订阅对象的集合
+    }
+
+    defined() {              // 添加订阅者
+      Dep.watch.add(this);
+    }
+
+    notify(args) {              //通知订阅者有变化
+      this.subs.forEach((e) => {
+        if (typeof e.update === 'function') {
+          try {
+            e.update(args);  //触发订阅者更新函数
+          } catch (err) {
+            console.log(err);
+          }
+        }
+      });
+    }
+
+  }
+
+  class Watch {
+    constructor(name, fn) {
+      this.name = name;       //订阅消息的名称
+      this.callBack = fn;     //订阅消息发送改变时->订阅者执行的回调函数
+    }
+
+    add(dep) {                  //将订阅者放入dep订阅池
+      dep.subs.push(this);
+    }
+
+    update(args) {                  //将订阅者更新方法
+      const cb = this.callBack; //赋值为了不改变函数内调用的this
+      cb({
+        eventName: this.name,
+        state: args,
+      });
+    }
+  }
+
+  const addHistoryMethod = (function() {
+    const historyDep = new Dep();
+    return function(name) {
+      if (name === 'historychange') {
+        return function(name, fn) {
+          Dep.watch = new Watch(name, fn);
+          historyDep.defined();
+          Dep.watch = null;       //置空供下一个订阅者使用
+        };
+      } else if (name === 'pushState' || name === 'replaceState') {
+        const method = history[name];
+        return function() {
+          method.apply(history, arguments);
+          historyDep.notify([...arguments]);
+        };
+      }
+
+    };
+  }());
+
+  window.addHistoryListener = addHistoryMethod('historychange');
+  history.pushState = addHistoryMethod('pushState');
+  history.replaceState = addHistoryMethod('replaceState');
+
+  window.addHistoryListener('history', function(e) {
+    console.log('窗口的history改变了', e);
+  });
+  window.addHistoryListener('history', function(e) {
+    console.log('窗口的history改变了-我也听到了', e);
+  });
+  history.pushState({first: 'first'}, 'page2', '/first');
+
+
+</script>
+</body>
+</html>
