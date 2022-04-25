@@ -17,7 +17,7 @@
     data.callback = `jsonp[${callBackId}]`;
     const params = [];
     for (const param of Object.keys(data)) {
-      params.push(`${param}=${data[param]}`);
+      params.push(`${param}=${encodeURIComponent(data[param])}`);
     }
     const script = document.createElement('script');
     script.src = url + '?' + params.join('&');
@@ -37,8 +37,10 @@
     });
   };
 
-  jsonp({url: 'http://127.0.0.1:3001', data: {name: 'bjjin', age: '12'}, cb: 'show'}).then(value => console.log(value));
-  jsonp({url: 'http://127.0.0.1:3001', data: {name: '12', age: '12'}, cb: 'show'}).then(value => console.log(value));
+  jsonp({url: 'http://localhost:8080/api/jsonp', data: {name: 'bjjin', age: '2&b=3', id: 1}, cb: 'show'}).
+    then(value => console.log(value));
+  jsonp({url: 'http://localhost:8080/api/jsonp', data: {name: '12', age: '12', id: 2}, cb: 'show'}).
+    then(value => console.log(value));
 
 </script>
 </body>
