@@ -76,12 +76,12 @@ class MyPromise {
     return new MyPromise((resolve, reject) => {
       if (this.#state === "pending") {
         this.#thenHookQueue.push({
-          hook: {onFulfilled, onRejected},
-          executorHook: {resolve, reject},
+          hook: { onFulfilled, onRejected },
+          executorHook: { resolve, reject },
         });
       } else {
         //同步直接执行
-        this.#onHooksResult({onFulfilled, onRejected}, {resolve, reject});
+        this.#onHooksResult({ onFulfilled, onRejected }, { resolve, reject });
       }
     });
   }
@@ -155,6 +155,30 @@ class MyPromise {
           MyPromise.resolve(value).then(resolve, reject);
         });
       }
+    });
+  }
+  static _all(iterable) {
+    return new MyPromise((resolve, reject) => {
+      let n = 0;
+      let res = [];
+      iterable.forEach((v, i) => {
+        MyPromise.resolve(v).then(
+          (value) => {
+            res[i] = value;
+            n++;
+            if (n === iterable.length) {
+              resolve(res);
+            }
+          },
+          (reason) => {
+            res[i] = reason;
+            n++;
+            if (n === iterable.length) {
+              reject(res);
+            }
+          }
+        );
+      });
     });
   }
 }
