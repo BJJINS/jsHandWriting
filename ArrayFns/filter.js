@@ -19,4 +19,18 @@ arr.filter(v => {
 });
 console.log(n);
 
-arr.filter(function(){console.log(this === a);}, a);
+arr.filter(function() {console.log(this === a);}, a);
+
+const b = new Array(10);
+b.filter(v => {console.log(v);});//callback不会执行
+
+arr.filter(value => {
+  console.log('value', value);
+  arr.push('bjjin');//filter遍历数组的范围在调用时就被确定，新添加的不会被遍及
+});
+
+const arrB = [1, 2, 3];
+arrB.filter(value => {
+  console.log('valueB', value);
+  arrB.pop();//valueB 1， valueB。valueB 3被删除了，所以不会被遍历
+});
