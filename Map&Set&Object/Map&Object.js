@@ -15,7 +15,7 @@ map.set(NaN, '2');
 /**
  * Map和Object不同点
  * 1.Map可以使用任意类型的值作为key
- * 2.object只能使用string作为key,其他类型的值会被转换为字符串
+ * 2.object只能使用string作为key,其他类型的值会被转换为字符串(Symbol 除外)
  * 3.Map按顺序存储，object，不能保证顺序(填入Object的元素key是自动按照字符串排序的，数字排在前面)
  * 4.Map可迭代，可直接拿到长度，Object都不行
  */
@@ -26,6 +26,10 @@ object['jack'] = 1;
 object[0] = 2;
 object['tom'] = 4;
 object[/1/g] = 23;
+object[Symbol(2)] = 34;
+for (const key of Reflect.ownKeys(object)) {
+  console.log(typeof key, key);
+}
 console.log(map);
 console.log(object);//{ '0': 2, NaN: 34, '[object Object]': 12, jack: 1, tom: 4, '/1/g': 23 }
 
