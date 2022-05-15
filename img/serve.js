@@ -14,7 +14,7 @@ var server = http.createServer(function (req, res) {
 });
 
 // 在 3000 端口监听请求
-server.listen(3004, function () {
+server.listen(3005, function () {
   console.log("服务器运行中.");
   console.log("正在监听 3004 端口:");
 });

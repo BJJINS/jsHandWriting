@@ -18,12 +18,12 @@ function readStaticFile(res, filePathname) {
         res.end();
       } else {
         res.writeHead(200, {
-          "Content-Type": mimeType,
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT",
-          "Access-Control-Max-Age": "3600",
-          "Access-Control-Allow-Headers":
-            "Content-Type,Access-Token,Authorization,ybg",
+          // "Content-Type": mimeType,
+          // "Access-Control-Allow-Origin": "*",
+          // "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT",
+          // "Access-Control-Max-Age": "3600",
+          // "Access-Control-Allow-Headers":
+          //   "Content-Type,Access-Token,Authorization,ybg",
         });
         res.write(data);
         res.end();
