@@ -13,6 +13,21 @@ function lineRectIntersection(lineStartPoint, lineEndPoint, rectangle) {
   const rectMinY = rectangle.yMin;
   const rectMaxY = rectangle.yMax;
 
+  //x轴平行
+  if (lineStartPoint.y === lineEndPoint.y) {
+    if (minXLinePoint.x >= rectMaxX || maxXLinePoint.x <= rectMinX) {
+      return false;
+    }
+    return true;
+  }
+  //y轴平行
+  if (lineStartPoint.x === lineEndPoint.x) {
+    if (minYLinePoint.y >= rectMaxY || maxYLinePoint.y <= rectMinY) {
+      return false;
+    }
+    return true;
+  }
+
   /**
    * 线和矩形在x轴方向上有相交
    */
@@ -82,10 +97,18 @@ function lineRectIntersection(lineStartPoint, lineEndPoint, rectangle) {
 console.log(
   lineRectIntersection(
     {
-      x: 607.5,
-      y: 298.5,
+      x: 513.5,
+      y: 253.5,
     },
-    { x: 1000.5, y: 200 },
-    { xMax: 709.6701159477234, xMin: 133.00345055262244, yMin: 0, yMax: 113.5 }
+    {
+      x: 555.5,
+      y: 253.5,
+    },
+    {
+      xMax: 667.5000019073486,
+      xMin: 453.5000008477105,
+      yMin: 155.5000004768372,
+      yMax: 359.499999165535,
+    }
   )
 );
