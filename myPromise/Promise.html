@@ -11,22 +11,16 @@
   </head>
   <body>
     <script type="module">
-      import MyPromise from "./MyPromise.js";
-      const p1 = MyPromise.resolve(1);
-      const p2 = new MyPromise((resolve) => {
-        setTimeout(() => resolve(2), 1000);
+      import MyPromise from "./index.js";
+      let myPromise = MyPromise;
+      // 测试代码
+      const promise = new myPromise((resolve, reject) => {
+        resolve(2);
       });
-      const p3 = new MyPromise((resolve) => {
-        setTimeout(() => resolve(3), 3000);
+      const p = promise.then((value) => {
+        throw "bjjin";
       });
-
-      const p4 = MyPromise.reject("err4");
-      const p5 = MyPromise.reject("err5");
-
-      const any = MyPromise._all([p4, p1, p3, p2]).then(
-        console.log,
-        console.log
-      );
+      console.log("ssssssss", p);
     </script>
   </body>
 </html>

@@ -4,8 +4,8 @@
   "description": "{**When you're done, you can delete the content in this README and update the file with details for others getting started with your repository**}",
   "main": "algebraicffects.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "class": "tsc ./ts/class.ts -w -t es6 "
+    "class": "tsc ./ts/class.ts -w -t es6 ",
+    "test": "promises-aplus-tests ./myPromise/a.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
     "express": "^4.17.3",
     "koa": "^2.13.4",
     "mime": "^3.0.0",
+    "promises-aplus-tests": "^2.1.2",
     "typescript": "^4.6.3"
   }
 }
