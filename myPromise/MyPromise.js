@@ -157,7 +157,7 @@ class MyPromise {
       }
     });
   }
-  static _all(iterable) {
+  static allSettled(iterable) {
     return new MyPromise((resolve, reject) => {
       let n = 0;
       let res = [];
@@ -183,4 +183,14 @@ class MyPromise {
   }
 }
 
-export default MyPromise;
+// export default MyPromise;
+MyPromise.deferred = function () {
+  let result = {};
+  result.promise = new MyPromise((resolve, reject) => {
+    result.resolve = resolve;
+    result.reject = reject;
+  });
+  return result;
+};
+
+module.exports = MyPromise;

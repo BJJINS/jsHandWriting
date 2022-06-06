@@ -14,13 +14,29 @@
       import MyPromise from "./index.js";
       let myPromise = MyPromise;
       // 测试代码
-      const promise = new myPromise((resolve, reject) => {
-        resolve(2);
+      // const promise = new myPromise((resolve, reject) => {
+      //   setTimeout(() => {
+      //     resolve(2);
+      //   }, 2000);
+      // });
+      // const p = promise.then((value) => {
+      //   throw "bjjin";
+      // });
+      // const p1 = promise.then((value) => {});
+      // console.log("ssssssss", p);
+      // console.log("111111111", p1);
+
+      const p = new myPromise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(1);
+        });
       });
-      const p = promise.then((value) => {
-        throw "bjjin";
-      });
-      console.log("ssssssss", p);
+
+      const p1 = p.then(
+        () => {},
+        () => {}
+      );
+      console.log(p1);
     </script>
   </body>
 </html>

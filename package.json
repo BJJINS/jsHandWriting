@@ -5,7 +5,7 @@
   "main": "algebraicffects.js",
   "scripts": {
     "class": "tsc ./ts/class.ts -w -t es6 ",
-    "test": "promises-aplus-tests ./myPromise/a.js"
+    "test": "promises-aplus-tests ./myPromise/index.js"
   },
   "repository": {
     "type": "git",
