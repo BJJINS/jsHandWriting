@@ -1,8 +1,8 @@
 Function.prototype.myCall = function (_this, ...args) {
-  _this.fn = this;
-  const res = _this.fn(...args);
+  const key = Symbol();
+  _this[key] = this;
+  const res = _this[key](...args);
   delete _this.fn;
-  Reflect.deleteProperty(_this, "fn");
   return res;
 };
 

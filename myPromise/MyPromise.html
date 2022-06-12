@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function MyPromise(executor) {
+        this.status = "pending";
+        this.value = null;
+        this.reason = null;
+
+        this.onFulfilledArray = [];
+        this.onRejectedArray = [];
+        const resolve = (value) => {
+          queueMicrotask(() => {
+            if (this.status === "pending") {
+              this.value = value;
+              this.status = "fulfilled";
+              this.onFulfilledArray.forEach((func) => func(value));
+            }
+          });
+        };
+        const reject = (reason) => {
+          queueMicrotask(() => {
+            if (this.status === "pending") {
+              this.reason = reason;
+              this.status = "rejected";
+              this.onRejectedArray.forEach((func) => func(reason));
+            }
+          });
+        };
+        try {
+          executor(resolve, reject);
+        } catch (error) {
+          reject(error);
+        }
+      }
+      MyPromise.prototype.then = function (
+        onfulfilled = typeof onfulfilled === "function"
+          ? onfulfilled
+          : (data) => data,
+        onrejected = typeof onrejected === "function"
+          ? onrejected
+          : (error) => {
+              throw error;
+            }
+      ) {
+        let p = null;
+        if (this.status === "fulfilled") {
+          return (p = new Promise((resolve, reject) => {
+            queueMicrotask(() => {
+              try {
+                const value = onfulfilled(this.value);
+                resolvePromise(p, value, resolve, reject);
+              } catch (error) {
+                reject(error);
+              }
+            });
+          }));
+        }
+        if (this.status === "rejected") {
+          return (p = new Promise((resolve, reject) => {
+            queueMicrotask(() => {
+              try {
+                const value = onrejected(this.reason);
+                resolvePromise(p, value, resolve, reject);
+              } catch (error) {
+                reject(error);
+              }
+            });
+          }));
+        }
+        if (this.status === "pending") {
+          return (p = new Promise((resolve, reject) => {
+            this.onFulfilledArray.push(() => {
+              queueMicrotask(() => {
+                try {
+                  const value = onfulfilled(this.value);
+                  resolvePromise(p, value, resolve, reject);
+                } catch (error) {
+                  reject(error);
+                }
+              });
+            });
+
+            this.onRejectedArray.push(() => {
+              queueMicrotask(() => {
+                try {
+                  const value = onrejected(this.reason);
+                  resolvePromise(p, value, resolve, reject);
+                } catch (error) {
+                  reject(error);
+                }
+              });
+            });
+          }));
+        }
+      };
+
+      function resolvePromise(promise, result, resolve, reject) {
+        //promise 和 result相等时，就是在onfulfilled中返回promise，执行reject
+        if (promise === result) {
+          reject(new Error("cycle"));
+        }
+
+        let consumed = false;
+        let thenable;
+        if (result instanceof MyPromise) {
+          if (result.status === "pending") {
+            result.then((data) => {
+              resolvePromise(promise, data, resolve, reject);
+            }, reject);
+          } else {
+            result.then(resolve, reject);
+          }
+          return;
+        }
+
+        const isComplexResult = (target) =>
+          (typeof target === "function" || typeof target === "object") &&
+          target !== null;
+
+        //如果是疑似MyPromise的类型
+        if (isComplexResult(result)) {
+          try {
+            thenable = result.then;
+            if (typeof thenable === "function") {
+              thenable.call(
+                result,
+                (data) => {
+                  if (consumed) {
+                    return;
+                  }
+                  consumed = true;
+                  return resolvePromise(promise, data, resolve, reject);
+                },
+                (error) => {
+                  if (consumed) {
+                    return;
+                  }
+                  consumed = true;
+                  return reject(error);
+                }
+              );
+            } else {
+              resolve(result);
+            }
+          } catch (error) {
+            if (consumed) {
+              return;
+            }
+            consumed = true;
+            return reject(error);
+          }
+        } else {
+          resolve(result);
+        }
+      }
+    </script>
+  </body>
+</html>
