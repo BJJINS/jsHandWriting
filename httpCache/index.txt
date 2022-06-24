@@ -9,10 +9,18 @@
 =========================
 强缓存
 Expires
+  response header 会有一个expires响应头，是一个时间戳，
+  接下来如果我们试图再次向服务器请求资源，浏览器就会先对比本地时间和expires的时间戳，
+  如果本地时间小于expires设定的过期时间，就直接从缓存中获取这个资源。
+  这要求本地时间和服务器时间一致
+
+
+
+
 Cache-control
-  no-Cache 不设置缓存
+  no-Cache 不设置缓存，走协商缓存
   max-age 缓存时间
-  no-store  不缓存，这个会让客户端、服务器都不缓存，也就没有所谓的强缓存、协商缓存了
+  no-store  禁用缓存，这个会让客户端、服务器都不缓存，也就没有所谓的强缓存、协商缓存了
   public 表示可以被浏览器和代理服务器缓存，代理服务器一般可用nginx来做
   private 只让客户端可以缓存该资源；代理服务器不缓存
   immutable 
@@ -26,6 +34,8 @@ Cache-control
 =============================
 协商缓存
 Etag 
+  etag的优先级比Last-modified高
+
   response header  
   每个文件有一个，改动文件了就变了，
   就是个文件hash，每个文件唯一，就像用webpack打包的时候，
@@ -33,6 +43,7 @@ Etag
 
 if-none-matched 
   文件hash,在request header中
+  服务端会比较有无一致的hash
 
 
 
