@@ -23,6 +23,7 @@
     "koa": "^2.13.4",
     "mime": "^3.0.0",
     "promises-aplus-tests": "^2.1.2",
+    "react": "^18.2.0",
     "typescript": "^4.6.3"
   }
 }
