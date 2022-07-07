@@ -1,15 +1,16 @@
-const asyncPool = async (limit, array) => {
+const asyncPool = (limit, array) => {
   if (array.length === 0) {
     return Promise.resolve([]);
   }
+  
   const ret = [];
   const executing = [];
   for (let i = 0; i < array.length; i++) {
-    const item = Promise.resolve(array[i]);
+    const item = array[i];
     ret.push(item);
     if (array.length >= limit) {
-      executing.push(item);
-      item.then(() => executing.splice(executing.indexOf(item), 1));
+      const p = item.then(() => executing.splice(executing.indexOf(item), 1));
+      executing.push(p);
       if (executing.length >= limit) {
         await Promise.race(executing);
       }
