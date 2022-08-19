@@ -4,13 +4,26 @@
  * @param delay
  * @returns {(function(...[*]): void)|*}
  */
-const debounce = (fn, delay) => {
-  let timer = null;
-  return function (...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      clearTimeout(timer);
-      fn.apply(this, args);
+
+function debounce(func, delay, immediate = true) {
+  let timeout = null;
+  function debounced(...args) {
+    const context = this;
+    if (immediate) {
+      func.apply(context, args);
+      immediate = false;
+    }
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => {
+      func.apply(context, args);
+      clearTimeout(timeout);
     }, delay);
+  }
+  debounced.cancel = function () {
+    clearTimeout(timeout);
+    immediate = false;
   };
-};
+  return debounced;
+}

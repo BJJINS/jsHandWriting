@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "{**When you're done, you can delete the content in this README and update the file with details for others getting started with your repository**}",
   "main": "algebraicffects.js",
+  "type": "module",
   "scripts": {
     "class": "tsc ./ts/class.ts -w -t es6 ",
     "test": "promises-aplus-tests ./myPromise/index.js"
