@@ -5,38 +5,18 @@
 // 优先级队列 Priority Queue
 // 最大堆实现。
 
-class MaxPQ {
-  pq: number[] = [0]; // 0的位置上空着
+class PriorityQueue<T> {
+  comparator: (i: number, j: number) => number; // 比较两个索引位置上的优先级 >0 表示优先级更高。默认优先级高的排前面
+  protected pq: [null, ...T[]] = [null]; // 0的位置上空着
+  constructor(comparator = (a, b) => a - b) {
+    this.comparator = (i, j) => comparator(this.pq[i], this.pq[j]);
+  }
 
   /**
-   * 当前 Priority Queue 中的元素个数
-   */
-  size = () => {
-    return this.pq.length - 1; // 0的位置上空着
-  };
-
-  /**
-   * 返回当前队列中最大元素
-   */
-  max = () => {
-    return this.pq[1];
-  };
-
-  /**
-   * 交换数组的两个元素
-   */
-  swap = (i: number, j: number) => {
-    const temp = this.pq[i];
-    this.pq[i] = this.pq[j];
-    this.pq[j] = temp;
-  };
-
-  /**
-   * pq[i] 是否比 pq[j] 小？
-   * @returns number
+   * pq[i] 的优先级 是否比 pq[j] 小？
    */
   less = (i: number, j: number) => {
-    return this.pq[i] < this.pq[j];
+    return this.comparator(i, j) < 0;
   };
 
   /**
@@ -61,7 +41,23 @@ class MaxPQ {
   };
 
   /**
-   * 上浮第 x 个元素，以维护最大堆性质
+   * 当前 Priority Queue 中的元素个数
+   */
+  get size() {
+    return this.pq.length - 1; // 0的位置上空着
+  }
+
+  /**
+   * 交换数组的两个元素
+   */
+  swap = (i: number, j: number) => {
+    const temp = this.pq[i];
+    this.pq[i] = this.pq[j];
+    this.pq[j] = temp;
+  };
+
+  /**
+   * 上浮第 x 个元素
    */
   swim = (x: number) => {
     const { less, parent, swap } = this;
@@ -72,11 +68,10 @@ class MaxPQ {
   };
 
   /**
-   * 下沉第 x 个元素，以维护最大堆性质
+   * 下沉第 x 个元素
    */
   sink = (x: number) => {
-    const { size: _size, left, right, less, swap } = this;
-    const size = _size();
+    const { size, left, right, less, swap } = this;
     // 如果沉到堆底，就沉不下去了
     while (left(x) <= size) {
       let max = left(x);
@@ -95,21 +90,63 @@ class MaxPQ {
   /**
    * 插入元素 e
    */
-  insert = (e: number) => {
+  insert = (e: T) => {
     this.pq.push(e);
-    this.swim(this.size());
+    this.swim(this.size);
   };
 
   /**
-   * 删除并返回当前队列中最大元素
+   * 删除节点
+   * @param index 删除位置索引
    */
-  delMax = () => {
-    const max = this.pq[1]; // 1 的位置上是最大
-    this.swap(1, this.size());
-    this.pq.pop();
-    this.sink(1);
-    return max;
+  remove(index: number) {
+    // 将要移除的节点和最后一个子节点交换
+    const _index = index + 1;
+    this.swap(this.size, _index);
+    // 移除节点并保存值
+    const value = this.pq.pop();
+    // 使子节点按照优先级排序
+    this.sink(_index);
+    return value;
+  }
+
+  get heap() {
+    const [_, ...array] = this.pq;
+    return array;
+  }
+}
+
+class MaxPriorityQueue<T> extends PriorityQueue<T> {
+  constructor() {
+    super();
+  }
+
+  /**
+   * 返回当前队列中最大元素
+   */
+  max = () => {
+    return this.pq[1];
   };
 }
 
-export default MaxPQ;
+class MinPriorityQueue<T> extends PriorityQueue<T> {
+  constructor(comparator = (a, b) => b - a) {
+    super(comparator);
+  }
+  /**
+   * 返回当前队列中最小元素
+   */
+  min = () => {
+    return this.pq[1];
+  };
+}
+
+const maxPq = new MaxPriorityQueue();
+maxPq.insert(1);
+maxPq.insert(4);
+maxPq.insert(12);
+maxPq.insert(7);
+console.log(maxPq.heap);
+
+export default PriorityQueue;
+export { MaxPriorityQueue, MinPriorityQueue };
