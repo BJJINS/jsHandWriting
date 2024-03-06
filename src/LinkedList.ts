@@ -81,37 +81,6 @@ class LinkedList<T> {
     }
     node.next = node.next.next;
   }
-
-  /**
-   * 合并两个有序列表
-   * @param list1 
-   * @param list2 
-   * @returns LinkedNode ｜ null
-   */
-  mergeTwoSortLists(list1: LinkedNode<T> | null, list2: LinkedNode<T> | null): LinkedNode<T> | null {
-    if (!list1) return list2;
-    if (!list2) return list1;
-    let p1 = list1;
-    let p2 = list2;
-    const head = new LinkedNode<T>();
-    let p = head;
-    while (p1 && p2) {
-      if (p1.val > p2.val) {
-        p.next = p2;
-        p2 = p2.next;
-      } else {
-        p.next = p1;
-        p1 = p1.next;
-      }
-      p = p.next;
-    }
-
-    const list = p1 || p2;
-    if (list) {
-      p.next = list;
-    }
-    return head.next;
-  }
 }
 
 export default LinkedList;
