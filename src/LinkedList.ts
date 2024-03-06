@@ -1,6 +1,6 @@
 class LinkedNode<T> {
   val: T;
-  next: LinkedNode<T>;
+  next: LinkedNode<T> | null;
   constructor(val?: T, next?: LinkedNode<T>) {
     this.val = val || null;
     this.next = next || null;
@@ -30,7 +30,7 @@ class LinkedList<T> {
 
   /**
    * 将一个值为 val 的节点插入到链表中第一个元素之前。在插入完成后，新节点会成为链表的第一个节点。
-   * @param val 
+   * @param val
    */
   addAtHead(val: T): void {
     this.addAtIndex(0, val);
@@ -46,7 +46,7 @@ class LinkedList<T> {
   /**
    * 将一个值为 val 的节点插入到链表中下标为 index 的节点之前。如果 index 等于链表的长度，那么该节点会被追加到 * 链表的末尾。如果 index 比长度更大，该节点将 不会插入 到链表中。
    * @param index 索引
-   * @param val 
+   * @param val
    */
   addAtIndex(index: number, val: T): void {
     if (index > this.size) {
@@ -80,6 +80,37 @@ class LinkedList<T> {
       i++;
     }
     node.next = node.next.next;
+  }
+
+  /**
+   * 合并两个有序列表
+   * @param list1 
+   * @param list2 
+   * @returns LinkedNode ｜ null
+   */
+  mergeTwoSortLists(list1: LinkedNode<T> | null, list2: LinkedNode<T> | null): LinkedNode<T> | null {
+    if (!list1) return list2;
+    if (!list2) return list1;
+    let p1 = list1;
+    let p2 = list2;
+    const head = new LinkedNode<T>();
+    let p = head;
+    while (p1 && p2) {
+      if (p1.val > p2.val) {
+        p.next = p2;
+        p2 = p2.next;
+      } else {
+        p.next = p1;
+        p1 = p1.next;
+      }
+      p = p.next;
+    }
+
+    const list = p1 || p2;
+    if (list) {
+      p.next = list;
+    }
+    return head.next;
   }
 }
 
