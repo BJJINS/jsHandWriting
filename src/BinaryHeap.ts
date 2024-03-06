@@ -141,12 +141,5 @@ class MinPriorityQueue<T> extends PriorityQueue<T> {
   };
 }
 
-const maxPq = new MaxPriorityQueue();
-maxPq.insert(1);
-maxPq.insert(4);
-maxPq.insert(12);
-maxPq.insert(7);
-console.log(maxPq.heap);
-
 export default PriorityQueue;
 export { MaxPriorityQueue, MinPriorityQueue };
