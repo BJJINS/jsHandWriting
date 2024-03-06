@@ -110,9 +110,19 @@ class PriorityQueue<T> {
     return value;
   }
 
+  /**
+   * 堆数据数组
+   */
   get heap() {
     const [_, ...array] = this.pq;
     return array;
+  }
+
+  /**
+   * 是否是空堆
+   */
+  get isEmpty(){
+    return this.heap.length === 0;
   }
 }
 
