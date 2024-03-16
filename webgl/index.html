@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        border: 0;
+        background-color: white;
+      }
+      /* 设置欢度大小为视域大小 */
+      canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script id="vertex-shader-2d" type="notjs">
+      attribute vec4 a_position;
+      void main() {
+        gl_Position = a_position;
+      }
+    </script>
+    <script id="fragment-shader-2d" type="notjs">
+      precision mediump float;
+      void main() {
+        gl_FragColor = vec4(1, 0, 0.5, 1); // return redish-purple
+      }
+    </script>
+    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+    <script src="./index.js" type="module"></script>
+  </body>
+</html>
