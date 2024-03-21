@@ -1,0 +1,38 @@
+<html>
+  <head> </head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <body>
+    <canvas style="border: 1px solid #000; width: 100vw; height: 100vh" id="canvas"></canvas>
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.height = canvas.clientHeight;
+      canvas.width = canvas.clientWidth;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const img = new Image();
+      img.src = "./images/173d56ddbbe2f32182f001a1781a2a09.jpg";
+      img.onload = () => {
+        const hScale = canvas.height / img.height;
+        const wScale = canvas.width / img.width;
+        const scale = Math.min(hScale, wScale);
+        const imgH = img.height * scale;
+        const imgW = img.width * scale;
+
+        let offsetX = 0;
+        let offsetY = 0;
+        if (hScale > wScale) {
+          offsetY = Math.floor((canvas.height - imgH) / 2);
+        } else {
+          offsetX = Math.floor((canvas.width - imgW) / 2);
+        }
+        ctx.drawImage(img, offsetX, offsetY, imgW, imgH);
+      };
+    </script>
+  </body>
+</html>
