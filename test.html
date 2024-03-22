@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>canvas图片的拖动、缩放、旋转</title>
+</head>
+
+<body>
+  <canvas width="800" height="800" style="border: 1px solid #000;" id="canvas"></canvas>
+</body>
+<script>
+  /**
+   * @param  ctx      画布
+   * @param  img      图片
+   * @param  imgH     图片的高
+   * @param  imgW     图片的宽
+   * @param  initImgW 图片的初始宽
+   * @param  initImgH 图片的初始高
+   * @param  iconR    可旋转标志的半径
+   * @param  beginX   最终渲染x轴坐标
+   * @param  beginY   最终渲染y轴坐标
+   * @param  PO       原点坐标
+   * @param  scale    缩放比例
+   * @param  rotate   旋转角度
+   */
+  var canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext('2d');
+  var imgH, imgW, beginX, beginY;
+  var initImgW, initImgH;
+  var canMove = canRotate = canScale = false;
+  var rotate = 0;
+  var iconR = 0;
+  var scale = 1;
+  //这里用改变坐标原点的方式来画图，让坐标原点始终在图片的中心
+  var PO = { x: 0, y: 0 };
+  var img = new Image();
+  img.src = './images/69d0bb50e0ac5680b60a9df68ac9d20d.jpg';
+  img.onload = () => {
+    initImgW = imgH = img.height;
+    initImgH = imgW = img.width;
+    //记录一下canvas原点  为图片的中心点,因为旋转图标在外面，初始化改变一下位置，离边远一点
+    PO = { x: imgW / 2 + 50, y: imgH / 2 + 50 };
+    //改变画布的中心点,
+    ctx.translate(PO.x, PO.y);
+  }
+  onDraw = () => {
+    //先清除画布，清除两倍的画布，因为要改变坐标原点，只有这样才能不管原点在哪里都能完全清除画布
+    ctx.clearRect(-canvas.width, -canvas.height, canvas.width * 2, canvas.height * 2);
+    //画图片，因为原点在图片的中心点，所以每次画图只需要从图片的负一半坐标开始画，就能看到我们想要的效果
+    ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
+  }
+  //判断鼠标是否在图片上按下
+  imgIsDown = (x, y) => {
+    //找到图片的最小值和最大值，因为画图是从-imgW / 2开始的，那么这就是图片占据的位置的最小值，最大值是imgW / 2,y轴同理
+    return -imgW / 2 < x && x < imgW / 2 && -imgH / 2 < y && y < imgH / 2;
+  }
+  //判断鼠标是否在可旋转图标上按下
+  iconIsDown = (x, y) => {
+    //原理，只要点击的点，与图标圆心的距离，不超过图标的半径，那么就说明点击的坐标在图标上
+    //先根据图标的位置，计算出圆心点的位置
+    var RX = imgW / 2 + iconR;
+    var RY = -imgH / 2;
+    //Math.sqrt可以获取到canvas两个点之间的距离，A点{x1,y1} B点{x2,y2}
+    return Math.sqrt((RX - x) * (RX - x) + (RY - y) * (RY - y)) <= iconR
+  }
+  //window屏幕坐标转化为canvas坐标
+  convertCoordinate = (x, y) => {
+    //在屏幕坐标系中，相对canvas坐标系原点PO的偏移,所以要减去canvas坐标原点
+    x = x - PO.x;
+    y = y - PO.y;
+    //如果没有旋转，那么只计算偏移量就行，不用考虑角度
+    if (rotate != 0) {
+      //Math.sqrt是两点之间的距离图中OM的距离，简化版本，正确用法应该是Math.sqrt((x-0)*(x-0) + (y-0)*(y-0))
+      var len = Math.sqrt(x * x + y * y);
+      //屏幕坐标系中 PO与按下点连线 与屏幕坐标系X轴的夹角弧度
+      var oldR = Math.atan2(y, x);
+      //canvas坐标系中PO与按下点连线 与canvas坐标系x轴的夹角弧度       
+      var newR = oldR - rotate;
+      //最终算出来canvas坐标系上的M点
+      x = len * Math.cos(newR);
+      y = len * Math.sin(newR);
+    }
+    return { x: x, y: y }
+  }
+
+  canvas.onmousedown = (e) => {
+    //e.offsetX是鼠标点击到canvas边的位置
+    beginX = e.offsetX;
+    beginY = e.offsetY;
+    //把点击的win坐标转为canvas坐标
+    var Cp = convertCoordinate(beginX, beginY)
+    //判断在canvas坐标点上是否在图片上
+    canMove = imgIsDown(Cp.x, Cp.y)
+    canRotate = iconIsDown(Cp.x, Cp.y)
+    canvas.onmousemove = (e) => {
+      var x = e.offsetX;
+      var y = e.offsetY;
+      //拖拽
+      if (canMove) {
+        //算出来移动的像素（每次都是减去上次的值）
+        var Mx = x - beginX;
+        var My = y - beginY;
+        //Mx和My是win上面移动的像素，还需要转为canvas坐标,加上坐标是因为要从坐标原点开始算
+        var CPO = convertCoordinate(Mx + PO.x, My + PO.y);
+        //改变canvas原点坐标
+        ctx.translate(CPO.x, CPO.y)
+        onDraw()
+        //画完以后要保存起来最终画到哪里了
+        PO.x += Mx;  //canvas坐标原点
+        PO.y += My;
+        beginX = x;  //保存起来这次图画到了哪里
+        beginY = y;
+      }
+      //旋转
+      if (canRotate) {
+        //还是先算出来canvas坐标
+        var CP = convertCoordinate(x, y);
+        var Cx = CP.x, Cy = CP.y;
+        //根据坐标算出来旋转的角度，这里减去一个50°是因为可旋转图标在图标的右上角，往上是逆时针，所以要减去他原有的角度，根据可旋转图标的位置来更改这个初始角度
+        var newR = Math.atan2(Cx, -Cy) - 50 * Math.PI / 180;
+        //旋转canvas画布
+        ctx.rotate(newR);
+        //记录一下现在的角度
+        rotate += newR;
+        onDraw()
+      }
+    }
+    document.onmouseup = () => {
+      canvas.onmousemove = null;
+      document.onmouseup = null;
+      canMove = false;
+      canRotate = false;
+    }
+  }
+
+  canvas.onmousewheel = (e) => {
+    var x = e.offsetX;
+    var y = e.offsetY;
+    var Cp = convertCoordinate(x, y)
+    //同样需要判断如果鼠标在图片上，才允许缩放
+    canScale = imgIsDown(Cp.x, Cp.y)
+    if (canScale) {
+      //e.wheelDelta如果大于0，证明鼠标是向上滚动，反之向下
+      if (e.wheelDelta > 0) {
+        //放大的倍数可以根据实际情况定义，可以丝滑一点
+        scale += 0.04
+      }
+      if (e.wheelDelta < 0) {
+        scale -= 0.04
+      }
+      //不管放大还是缩下，都是用初始的宽高，来放大或者缩小
+      imgW = scale * initImgW;
+      imgH = scale * initImgH;
+      onDraw()
+    }
+  }
+
+</script>
+
+</html>
