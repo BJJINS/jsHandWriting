@@ -74,6 +74,7 @@
         drawImage = () => {
           // 清除上一帧绘制
           this.ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
+          // this.ctx.translate(this.imgX,this.imgY);
           // 绘制图片
           this.ctx.drawImage(
             this.img,

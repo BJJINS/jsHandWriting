@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas width="500" height="500" id="myCanvas"></canvas>
+    <script>
+      let mouseMoveCount = 0;
+      let mouseMovePositions = [];
+
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
+
+      canvas.addEventListener("mousemove", (e) => {
+        // 将鼠标位置转换为相对于canvas的位置
+        const bounds = canvas.getBoundingClientRect();
+        const x = e.clientX - bounds.left - canvas.clientLeft;
+        const y = e.clientY - bounds.top - canvas.clientTop;
+
+        // 记录鼠标位置
+        mouseMovePositions.push({ x, y });
+        mouseMoveCount++;
+        if ([...new Set(mouseMovePositions)].length != mouseMovePositions.length) {
+          console.log(1)
+          
+        }
+        // 清除旧的鼠标位置，保留最后几个点
+        // if (mouseMoveCount > 10) {
+        //   mouseMovePositions.shift();
+        //   mouseMoveCount--;
+        // }
+        // 清除画布并重新绘制轨迹
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.strokeStyle = "blue";
+        ctx.lineWidth = 2;
+        ctx.moveTo(mouseMovePositions[0].x, mouseMovePositions[0].y);
+        for (let i = 1; i < mouseMovePositions.length; i++) {
+          ctx.lineTo(mouseMovePositions[i].x, mouseMovePositions[i].y);
+        }
+        ctx.stroke();
+
+        // 检测最后几个点是否接近圆形
+        if (mouseMovePositions.length > 2) {
+          const lastThreePoints = mouseMovePositions.slice(-3);
+          const a = lastThreePoints[0];
+          const b = lastThreePoints[1];
+          const c = lastThreePoints[2];
+
+          // 使用几何方法检测是否形成圆形
+          // 假设ab, bc, ca 是三角形的边，半径r为ab的长度的一半
+          // 则有：r = (abc) / 2, 其中abc是三角形的半周长
+          const semiPerimeter =
+            (Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) +
+              Math.sqrt(Math.pow(b.x - c.x, 2) + Math.pow(b.y - c.y, 2)) +
+              Math.sqrt(Math.pow(c.x - a.x, 2) + Math.pow(c.y - a.y, 2))) /
+            2;
+
+          const isCircle =
+            Math.abs(semiPerimeter - Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2))) < 2 &&
+            Math.abs(semiPerimeter - Math.sqrt(Math.pow(b.x - c.x, 2) + Math.pow(b.y - c.y, 2))) < 2 &&
+            Math.abs(semiPerimeter - Math.sqrt(Math.pow(c.x - a.x, 2) + Math.pow(c.y - a.y, 2))) < 2;
+
+          if (isCircle) {
+            console.log("true");
+          } else {
+            console.log("false");
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -85,4 +85,74 @@ var longestPalindrome = function (s) {
   return res;
 };
 
-console.log(longestPalindrome("11"))
+// console.log(longestPalindrome("11"))
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {number}
+ */
+
+var diameterOfBinaryTree = function (root) {
+  let maxDiameter = 0;
+  const maxDepth = (root) => {
+    if (!root) {
+      return 0;
+    }
+
+    const leftMax = maxDepth(root.left);
+    const rightMax = maxDepth(root.right);
+
+    const depth = leftMax + rightMax;
+    maxDiameter = Math.max(depth, maxDiameter);
+
+    return 1 + Math.max(leftMax, rightMax);
+  };
+  maxDepth(root);
+  return maxDiameter;
+};
+
+var diameterOfBinaryTree = function (root) {
+  let ans = 0;
+  const dfs = (node) => {
+    if (!node) {
+      return 0;
+    }
+    const left = dfs(node.left);
+    const right = dfs(node.right);
+    ans = Math.max(ans, left + right);
+    return Math.max(left, right) + 1;
+  };
+  dfs(root);
+  return ans;
+};
+
+const module = device.createShaderModule({
+  label: "our hardcoded red triangle shaders",
+  code: `
+    @vertex fn vs(
+      @builtin(vertex_index) vertexIndex : u32
+    ) -> @builtin(position) vec4f {
+      let pos = array(
+        vec2f( 0.0,  0.5),  // top center
+        vec2f(-0.5, -0.5),  // bottom left
+        vec2f( 0.5, -0.5)   // bottom right
+      );
+
+      return vec4f(pos[vertexIndex], 0.0, 1.0);
+    }
+
+    @fragment fn fs() -> @location(0) vec4f {
+      return vec4f(1.0, 0.0, 0.0, 1.0);
+    }
+  `,
+});
+/**@type{ HTMLCanvasElement } */
+const canvas = document.getElementById("canvas");

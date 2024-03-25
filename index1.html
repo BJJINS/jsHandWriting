@@ -1,0 +1,55 @@
+<html>
+  <head> </head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <body>
+    <canvas style="border: 1px solid #000" id="canvas" width="500" height="500"></canvas>
+    <script>
+      /**@type{HTMLCanvasElement}*/
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "red";
+      const a = new Path2D();
+      a.rect(0, 0, 100, 100);
+      a.rect(20, 20, 100, 100);
+
+      const b = new Path2D();
+      b.rect(100, 100, 100, 100);
+      ctx.stroke(a);
+      ctx.stroke(b);
+      setTimeout(() => {
+        ctx.strokeStyle = "yellow";
+        // a.rect(10, 10, 100, 100);
+        ctx.stroke(a);
+      }, 1000);
+      let isDrawing = false;
+      function startDrawing(e) {
+        isDrawing = true;
+        draw(e);
+      }
+      function stopDrawing(e) {
+        isDrawing = false;
+        ctx.beginPath();
+      }
+      function draw(e) {
+        if (!isDrawing) {
+          return;
+        }
+        ctx.strokeStyle = "#000";
+        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+      }
+      canvas.addEventListener("mousedown", startDrawing);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stopDrawing);
+      canvas.addEventListener("mouseout", stopDrawing);
+    </script>
+  </body>
+</html>
